@@ -1,0 +1,40 @@
+package com.widget.widget
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+
+class LinkClickReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        Log.d("LinkClickReceiver", "Broadcast Received! Action: ${intent.action}")
+
+        if ("com.zurl.app.ACTION_OPEN_URL" == intent.action || "com.widget.widget.ACTION_OPEN_URL" == intent.action) {
+            val url = intent.getStringExtra("EXTRA_URL")
+            Log.d("LinkClickReceiver", "Opening exact URL: $url")
+
+            if (!url.isNullOrBlank()) {
+                try {
+                    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                        "https://$url"
+                    } else {
+                        url
+                    }
+
+                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl)).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(browserIntent)
+                    
+                } catch (e: Exception) {
+                    Log.e("LinkClickReceiver", "Could not open browser for URL: $url", e)
+                    Toast.makeText(context, "Browser opening failed", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Log.w("LinkClickReceiver", "URL extra was null or empty.")
+            }
+        }
+    }
+}
